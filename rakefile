@@ -1,0 +1,110 @@
+#todo: dont 'fail' on circle when version already exists
+
+require 'pry'
+require 'aws-sdk'
+require 'rake/testtask'
+
+# Create a rake task for running tests
+Rake::TestTask.new do |t|
+  t.name = :functional
+  t.pattern = "test/functional/*.rb"
+end
+
+def s3
+  $s3 ||= AWS::S3.new(access_key_id: ENV["S3_ACCESS_KEY_ID"] , secret_access_key: ENV["S3_ACCESS_KEY"], region: 'eu-west-1')
+end
+
+def bucket
+  $bucket ||=  s3.buckets['prod-sky-analytics']
+end
+
+def latest_version_number
+  $latest_version_number ||= File.open('_config.yml').read.match(/version:(.+)/)[1].strip
+end
+
+def version_already_exists?
+  bucket.objects.any? do |obj|
+    obj.key.split('/').first == latest_version_number
+  end
+end
+
+def version_is_release_candidate?
+  latest_version_number.include? 'rc'
+end
+
+def files_to_upload
+  ["analytics.js"]
+end
+
+def templates_to_upload
+  Dir.glob("_site/**/*.*")
+end
+
+def content_type(file)
+  case File.extname(file)
+    when '.map'
+      content_type = 'text/javascript'
+    when '.js'
+      content_type = 'text/javascript'
+    when '.css'
+      content_type = 'text/css'
+    when '.png'
+      content_type = 'image/png'
+    when '.html'
+      content_type = 'text/html'
+    else
+      content_type = 'image/jpeg'
+  end
+  content_type
+end
+
+def getDate
+  `date +'%d-%m-%Y'`
+end
+
+desc 'Deploys a new version to the CDN'
+task :deploy_new_version do
+
+  system "git config user.email 'circleci@bskyb.com'"
+  system "git config user.name 'CircleCI'"
+
+  puts "*** Grunting files ***"
+  system "grunt"
+  system "git add ./dist"
+  system "git commit -m 'Rake deploy - adding grunted files'"
+  system "git push origin HEAD:master"
+
+  if !version_is_release_candidate?
+    puts "*** Pushing to github.io ***"
+    system "git stash"
+    system "git checkout gh-pages"
+    system "git push origin master:gh-pages"
+    system "git checkout master"
+    system "git stash apply"
+
+    puts "*** Tagging Version #{latest_version_number} ***"
+    system "git tag -a v#{latest_version_number} -m \"Rake deploy: auto tag on #{getDate}\""
+    system "git push origin master v#{latest_version_number}"
+
+  end
+
+  if version_already_exists?
+    puts "Version #{latest_version_number} exists so exiting."
+    next
+  end
+
+  puts "*** Pushing to the AmazonS3 ***"
+  doc_resources = []
+  puts "Deployed following resources:"
+  cd "_site/dist/js/"
+  files_to_upload.each do |file|
+    doc_resources << bucket.objects["#{latest_version_number}/#{file}"].write(File.open(file).read, cache_control: 'public, max-age=2592000', content_type: content_type(file), acl: :public_read )
+  end
+
+  puts "Deploying templates:"
+  cd "../../../"
+  templates_to_upload.each do |file|
+    doc_resources << bucket.objects["#{latest_version_number}/#{file}"].write(File.open(file).read, cache_control: 'public, max-age=2592000', content_type: content_type(file), acl: :public_read )
+  end
+
+end

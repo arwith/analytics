@@ -1,0 +1,17 @@
+machine:
+  timezone: Europe/London
+
+  ruby:
+    version: ruby-1.9.3-p392
+    
+test:
+  pre:
+    - bundle install
+  override:
+    - bundle exec grunt test
+
+deployment:
+  production:
+    branch: master
+    commands:
+      - bundle exec rake deploy_new_version

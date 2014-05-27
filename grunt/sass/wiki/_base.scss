@@ -1,0 +1,55 @@
+.wiki-header{
+  margin-bottom: 0;
+}
+.demo-section {
+  border-top: 2px solid #333;
+  margin-bottom:25px;
+
+  &.no-border{
+    border-style: none;
+  }
+
+}
+
+
+.wiki-h3{
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.block {
+  display: block;
+}
+
+a[name]:not([href]){
+  padding-top: 1em;
+  display: block;
+}
+
+.wiki-header {
+  small {
+    color: #999;
+  }
+}
+
+.wiki-dl dt{
+  font-family:SkyTextMedium;
+}
+
+.example {
+  clear: both;
+  margin: 1em 0;
+}
+
+.example .skycom-4,
+.example .skycom-4,
+.example .skycom-8,
+.example .skycom-8,
+dt,
+dd{
+    padding: 6px 0;
+    border-top: 1px dashed #ddd;
+}
+
+dt:nth-child(3n) ,
+dd:nth-child(2n) {
+}

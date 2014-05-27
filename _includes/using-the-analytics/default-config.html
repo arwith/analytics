@@ -1,0 +1,46 @@
+<h3 class="wiki-h3">Default Config
+    <a id="PageLoad" href="#test/PageLoad" class="run-test hover-colour" data-test-name="PageLoad">
+        <span class="dev-button result-summary">
+            <i class="skycon-tick colour" aria-hidden="true"></i>Load Tests
+        </span>
+        <i class="skycon-carousel-play" title="Load tests"></i>
+    </a>
+</h3>
+<p class="developer-notes">
+    There are a few things you get for free.  These are:
+</p>
+
+<h4>On Page View</h4>
+<div class="example clearfix ">
+    {% for item in site.data.variables.pageView %}
+
+    <div class="skycom-4 alpha has-code-example" data-tracking-module="{{ item.id }}">
+        <a href="#!" id="{{ item.id }}-page-view-link">{{ item.id }}</a>
+    </div>
+    <div class="skycom-8">
+        {{ item.description }}
+    </div>
+
+    {% endfor %}
+
+</div>
+
+<h4>On Click</h4>
+<div class="example clearfix ">
+
+    {% for item in site.data.variables.linkClick %}
+
+    <div class="skycom-4 alpha has-code-example" data-tracking-module="{{ item.id }}">
+        <a href="#!" id="{{ item.id }}-link-click-link">{{ item.id }}</a>
+    </div>
+    <div class="skycom-8">
+        {{ item.description }}
+    </div>
+
+    {% endfor %}
+
+    <script>
+        {% include using-the-analytics/default-config/setup.js %}
+    </script>
+
+ </div>
